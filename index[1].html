@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecli 1 - Ultimate Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+        :root { --bg: #050505; --surface: #111; --accent: #ffd700; --text: #fff; --msg-my: #ffd700; --msg-other: #1a1a1a; }
+        * { box-sizing: border-box; transition: 0.2s; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
+        
+        /* AUTH */
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 5000; }
+        .auth-card { background: var(--surface); padding: 30px; border-radius: 20px; border: 1px solid var(--accent); text-align: center; width: 300px; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 8px; }
+        .auth-btn { width: 100%; padding: 12px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; border-radius: 8px; }
+
+        /* SIDEBAR */
+        #side-menu { position: fixed; left: -310px; top: 0; width: 300px; height: 100%; background: var(--surface); border-right: 1px solid #222; z-index: 2000; display: flex; flex-direction: column; }
+        #side-menu.active { left: 0; }
+        .menu-header { padding: 20px; border-bottom: 1px solid #222; text-align: center; }
+        .profile-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); background: #222; }
+        
+        /* INVITE BOX */
+        #invite-box { background: rgba(255,215,0,0.1); border: 1px dashed var(--accent); margin: 10px; padding: 15px; border-radius: 10px; display: none; font-size: 13px; }
+        .inv-btns { display: flex; gap: 5px; margin-top: 10px; }
+        .inv-btns button { flex: 1; padding: 5px; border-radius: 5px; border: none; cursor: pointer; font-size: 11px; }
+
+        .contacts-area { flex-grow: 1; overflow-y: auto; }
+        .contact-item { padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #1a1a1a; }
+        .contact-item.active { background: rgba(255,215,0,0.1); border-left: 4px solid var(--accent); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--accent); overflow: hidden; }
+
+        /* CHAT */
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; width: 100%; }
+        header { background: var(--surface); padding: 15px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #222; }
+        #chat-window { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #000; }
+        .message { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 14px; position: relative; }
+        .my-message { align-self: flex-end; background: var(--msg-my); color: #000; border-bottom-right-radius: 2px; }
+        .other-message { align-self: flex-start; background: var(--msg-other); color: #fff; border-bottom-left-radius: 2px; }
+        .sender-name { font-size: 10px; opacity: 0.6; display: block; margin-bottom: 4px; }
+
+        /* INPUT AREA */
+        #input-area { padding: 15px; background: var(--surface); display: flex; gap: 10px; align-items: center; }
+        #msg-input { flex-grow: 1; background: #000; border: 1px solid #333; padding: 12px; color: #fff; border-radius: 20px; outline: none; }
+        .icon-btn { background: none; border: none; color: var(--accent); font-size: 20px; cursor: pointer; padding: 5px; }
+        
+        #rec-ui { display: none; color: red; font-size: 12px; flex-grow: 1; align-items: center; gap: 10px; }
+        .hidden { display: none !important; }
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 1500; }
+    </style>
+</head>
+<body>
+
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2 style="font-family:'Orbitron'; color:var(--accent)">ECLI 1</h2>
+            <input type="text" id="username" class="auth-input" placeholder="Никнейм">
+            <input type="password" id="password" class="auth-input" placeholder="Пароль">
+            <button class="auth-btn" onclick="auth()">ВОЙТИ</button>
+        </div>
+    </div>
+
+    <div id="overlay" onclick="toggleMenu()"></div>
+    
+    <div id="side-menu">
+        <div class="menu-header">
+            <img id="nav-photo" class="profile-img" src="">
+            <div id="nav-name" style="font-weight:bold; margin-top:5px;">User</div>
+            <div id="nav-id" style="font-size:10px; color:var(--accent)">ID: ----</div>
+        </div>
+
+        <div id="invite-box">
+            <div>Группа: <b id="inv-name">...</b></div>
+            <div class="inv-btns">
+                <button style="background:#2ecc71" onclick="acceptInv()">Войти</button>
+                <button style="background:#e74c3c" onclick="rejectInv()">Нет</button>
+            </div>
+        </div>
+
+        <div class="contacts-area">
+            <div class="contact-item" onclick="addAny()">➕ Добавить / Пригласить</div>
+            <div class="contact-item" style="color:var(--accent)" onclick="createGroup()">👥 Создать группу</div>
+            <div id="contacts-list"></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <button class="icon-btn" onclick="toggleMenu()">☰</button>
+            <div id="chat-title" style="font-family:'Orbitron'; font-size:14px">ECLI</div>
+        </header>
+        <div id="chat-window"></div>
+        <div id="input-area" class="hidden">
+            <button class="icon-btn" onclick="document.getElementById('f-up').click()">🖼️</button>
+            <input type="file" id="f-up" class="hidden" accept="image/*" onchange="sendImg(this)">
+            
+            <input type="text" id="msg-input" placeholder="Сообщение..." oninput="checkInput()">
+            
+            <div id="rec-ui">⏺ Запись... <span id="timer">00:00</span></div>
+            
+            <button id="voice-btn" class="icon-btn" onclick="startVoice()">🎤</button>
+            <button id="send-btn" class="icon-btn hidden" onclick="sendText()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        let me = JSON.parse(sessionStorage.getItem('ecli_u')) || null;
+        let friends = me ? (JSON.parse(localStorage.getItem('ecli_f_' + me.id)) || []) : [];
+        let targetID = null, recorder, chunks = [], timerInt, pendingInv = null;
+
+        function auth() {
+            const n = document.getElementById('username').value.trim(), p = document.getElementById('password').value.trim();
+            if(!n || !p) return;
+            let acc = JSON.parse(localStorage.getItem('acc_'+n));
+            if(!acc) {
+                acc = { n, p, id: Math.random().toString(36).substring(2,7).toUpperCase(), img: '' };
+                localStorage.setItem('acc_'+n, JSON.stringify(acc));
+            } else if(acc.p !== p) return alert("Пароль!");
+            sessionStorage.setItem('ecli_u', JSON.stringify(acc));
+            location.reload();
+        }
+
+        function addAny() {
+            const id = prompt("Введите ID (Человека или Группы):").toUpperCase();
+            if(!id || id === me.id) return;
+            
+            let found = findInStorage(id);
+            if(!found) return alert("ID не найден!");
+
+            if(id.startsWith('G-')) {
+                const who = prompt("Введите ID друга, которого хотите пригласить в эту группу:");
+                if(who) {
+                    localStorage.setItem('ecli_sync', JSON.stringify({type:'invite', group:found, to:who.toUpperCase(), from:me.n}));
+                    alert("Приглашение отправлено!");
+                }
+            } else {
+                if(!friends.find(f => f.id === id)) { friends.push(found); saveFriends(); renderFriends(); }
+            }
+        }
+
+        function createGroup() {
+            const n = prompt("Название группы:"); if(!n) return;
+            const gid = 'G-' + Math.random().toString(36).substring(2,6).toUpperCase();
+            const g = { id: gid, n: n, isGroup: true };
+            localStorage.setItem('acc_'+gid, JSON.stringify(g));
+            friends.push(g); saveFriends(); renderFriends();
+        }
+
+        // --- МЕДИА ФУНКЦИИ ---
+        function sendText() {
+            const i = document.getElementById('msg-input');
+            if(i.value.trim()) { emit('text', i.value); i.value = ''; checkInput(); }
+        }
+
+        function sendImg(input) {
+            const r = new FileReader();
+            r.onload = () => emit('img', r.result);
+            if(input.files[0]) r.readAsDataURL(input.files[0]);
+        }
+
+        async function startVoice() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recorder = new MediaRecorder(stream);
+            chunks = [];
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'audio/ogg' });
+                const r = new FileReader();
+                r.onloadend = () => { if(chunks.length) emit('voice', r.result); };
+                r.readAsDataURL(blob);
+            };
+            recorder.start();
+            document.getElementById('msg-input').classList.add('hidden');
+            document.getElementById('rec-ui').style.display = 'flex';
+            document.getElementById('voice-btn').innerHTML = '✅';
+            document.getElementById('voice-btn').onclick = stopVoice;
+        }
+
+        function stopVoice() {
+            recorder.stop();
+            document.getElementById('msg-input').classList.remove('hidden');
+            document.getElementById('rec-ui').style.display = 'none';
+            document.getElementById('voice-btn').innerHTML = '🎤';
+            document.getElementById('voice-btn').onclick = startVoice;
+        }
+
+        // --- СИСТЕМА ---
+        function emit(type, content) {
+            const msg = { type, content, from: me.id, fromName: me.n, to: targetID, stamp: Date.now() };
+            localStorage.setItem('ecli_sync', JSON.stringify(msg));
+            displayMsg(msg, true);
+        }
+
+        window.onstorage = (e) => {
+            if(e.key === 'ecli_sync') {
+                const d = JSON.parse(e.newValue);
+                if(d.type === 'invite' && d.to === me.id) {
+                    pendingInv = d.group;
+                    document.getElementById('inv-name').innerText = d.group.n;
+                    document.getElementById('invite-box').style.display = 'block';
+                } else if(d.to === me.id || d.to === targetID) {
+                    if(d.from !== me.id) displayMsg(d, false);
+                }
+            }
+        };
+
+        function displayMsg(m, isMine) {
+            const win = document.getElementById('chat-window');
+            const d = document.createElement('div');
+            d.className = `message ${isMine ? 'my-message' : 'other-message'}`;
+            
+            let nameTag = (targetID.startsWith('G-') && !isMine) ? `<span class="sender-name">${m.fromName}</span>` : '';
+            
+            if(m.type === 'text') d.innerHTML = nameTag + m.content;
+            if(m.type === 'img') d.innerHTML = nameTag + `<img src="${m.content}" style="width:100%;border-radius:10px">`;
+            if(m.type === 'voice') d.innerHTML = nameTag + `<audio controls src="${m.content}" style="width:200px;height:35px"></audio>`;
+            
+            win.appendChild(d);
+            win.scrollTop = win.scrollHeight;
+            saveHistory(m, isMine);
+        }
+
+        function findInStorage(id) {
+            for(let i=0; i<localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if(k.startsWith('acc_')) {
+                    const obj = JSON.parse(localStorage.getItem(k));
+                    if(obj.id === id) return obj;
+                }
+            }
+            return null;
+        }
+
+        function acceptInv() { if(!friends.find(f=>f.id===pendingInv.id)) { friends.push(pendingInv); saveFriends(); renderFriends(); } rejectInv(); }
+        function rejectInv() { pendingInv = null; document.getElementById('invite-box').style.display='none'; }
+        function saveFriends() { localStorage.setItem('ecli_f_'+me.id, JSON.stringify(friends)); }
+        function renderFriends() {
+            const l = document.getElementById('contacts-list'); l.innerHTML = '';
+            friends.forEach(f => {
+                l.innerHTML += `<div class="contact-item ${targetID==f.id?'active':''}" onclick="openChat('${f.id}','${f.n}')">
+                <div class="avatar">${f.isGroup ? '👥' : f.n[0]}</div>
+                <div><b>${f.n}</b><br><small>${f.id}</small></div></div>`;
+            });
+        }
+        function openChat(id, n) { 
+            targetID = id; document.getElementById('chat-title').innerText = n;
+            document.getElementById('input-area').classList.remove('hidden');
+            loadHistory(); renderFriends(); toggleMenu(); 
+        }
+        function saveHistory(m, isMine) {
+            const key = `h_${me.id}_${targetID}`;
+            let h = JSON.parse(localStorage.getItem(key)) || [];
+            h.push({...m, isMine}); localStorage.setItem(key, JSON.stringify(h.slice(-50)));
+        }
+        function loadHistory() {
+            const win = document.getElementById('chat-window'); win.innerHTML = '';
+            let h = JSON.parse(localStorage.getItem(`h_${me.id}_${targetID}`)) || [];
+            h.forEach(m => {
+                const d = document.createElement('div');
+                d.className = `message ${m.isMine ? 'my-message' : 'other-message'}`;
+                let nameTag = (targetID.startsWith('G-') && !m.isMine) ? `<span class="sender-name">${m.fromName}</span>` : '';
+                if(m.type === 'text') d.innerHTML = nameTag + m.content;
+                if(m.type === 'img') d.innerHTML = nameTag + `<img src="${m.content}" style="width:100%;border-radius:10px">`;
+                if(m.type === 'voice') d.innerHTML = nameTag + `<audio controls src="${m.content}" style="width:200px;height:35px"></audio>`;
+                win.appendChild(d);
+            });
+            win.scrollTop = win.scrollHeight;
+        }
+        function checkInput() {
+            const v = document.getElementById('msg-input').value;
+            document.getElementById('send-btn').classList.toggle('hidden', !v);
+            document.getElementById('voice-btn').classList.toggle('hidden', !!v);
+        }
+        function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); document.getElementById('overlay').style.display = document.getElementById('side-menu').classList.contains('active') ? 'block' : 'none'; }
+
+        if(me) {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('nav-name').innerText = me.n;
+            document.getElementById('nav-id').innerText = "ID: " + me.id;
+            renderFriends();
+        }
+    </script>
+</body>
+</html>
