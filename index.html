@@ -2,54 +2,100 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ECLI 1 PRO - MOBILE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ECLI 1 PRO - FIXED</title>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <style>
-        :root { --bg: #0b0e11; --panel: #1c2126; --text: #ffffff; --accent: #ffd700; --msg-my: #ffd700; --msg-other: #262d31; }
-        .light-theme { --bg: #f0f2f5; --panel: #ffffff; --text: #000000; --accent: #0080ff; --msg-my: #dcf8c6; --msg-other: #ffffff; }
+        :root { 
+            --bg: #0b0e11; 
+            --panel: #1c2126; 
+            --accent: #ffd700; 
+            --text: #ffffff;
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: var(--bg); color: var(--text); 
+            font-family: -apple-system, sans-serif; overflow: hidden;
+        }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { margin: 0; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        /* Экран входа */
+        #auth-screen { 
+            position: fixed; inset: 0; background: var(--bg); z-index: 2000; 
+            display: flex; align-items: center; justify-content: center; padding: 20px; 
+        }
+        .auth-card { 
+            background: var(--panel); width: 100%; max-width: 350px; 
+            padding: 25px; border-radius: 20px; text-align: center; border: 1px solid var(--accent);
+        }
 
-        /* AUTH SCREEN */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: var(--panel); width: 100%; max-width: 400px; padding: 30px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: 1px solid #333; background: rgba(0,0,0,0.2); color: var(--text); font-size: 16px; }
+        /* Основной контейнер */
+        #app { display: flex; width: 100%; height: 100%; position: relative; }
 
-        /* SIDEBAR (CONTACTS) */
-        #sidebar { width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; position: absolute; z-index: 100; transition: 0.4s; }
+        /* Боковая панель (Список друзей) */
+        #sidebar { 
+            width: 100%; height: 100%; background: var(--bg); 
+            position: absolute; z-index: 100; transition: 0.3s ease;
+            display: flex; flex-direction: column;
+        }
         #sidebar.hidden { transform: translateX(-100%); }
 
-        .header { padding: 15px; display: flex; align-items: center; gap: 12px; background: var(--panel); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; background: #444; border: 2px solid var(--accent); }
-        
-        .contact-card { padding: 15px; margin: 8px 15px; background: var(--panel); border-radius: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; }
+        .header { 
+            padding: 15px; height: 70px; display: flex; align-items: center; gap: 12px; 
+            background: var(--panel); border-bottom: 1px solid #333; 
+        }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); }
 
-        /* CHAT AREA */
-        #chat-main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); }
-        #messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; }
-        .msg.my { align-self: flex-end; background: var(--msg-my); color: #000; border-bottom-right-radius: 4px; }
-        .msg.other { align-self: flex-start; background: var(--msg-other); color: #fff; border-bottom-left-radius: 4px; }
+        /* Область чата */
+        #chat-window { 
+            flex-grow: 1; display: flex; flex-direction: column; 
+            background: var(--bg); height: 100%; width: 100%;
+        }
+
+        #messages { 
+            flex-grow: 1; overflow-y: auto; padding: 15px; 
+            display: flex; flex-direction: column; gap: 10px;
+            padding-bottom: 20px;
+        }
+
+        .msg { 
+            max-width: 75%; padding: 10px 14px; border-radius: 18px; 
+            font-size: 15px; line-height: 1.4; word-wrap: break-word;
+        }
+        .msg.my { align-self: flex-end; background: var(--accent); color: #000; border-bottom-right-radius: 2px; }
+        .msg.other { align-self: flex-start; background: var(--panel); color: #fff; border-bottom-left-radius: 2px; }
         .msg img { width: 100%; border-radius: 10px; margin-top: 5px; }
 
-        /* INPUT */
-        .input-bar { padding: 10px 15px 25px 15px; background: var(--panel); display: flex; align-items: center; gap: 10px; }
-        .btn-circle { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        #msg-input { flex-grow: 1; background: var(--bg); border: none; padding: 12px 20px; border-radius: 25px; color: #fff; }
+        /* НИЖНЯЯ ПАНЕЛЬ ВВОДА (ПОДНЯТА ВЫШЕ) */
+        .input-area { 
+            padding: 10px 15px;
+            padding-bottom: calc(var(--safe-bottom) + 10px); 
+            background: var(--panel); 
+            display: flex; align-items: center; gap: 8px;
+            border-top: 1px solid #333;
+        }
 
-        /* FULLSCREEN VIEW (AVATAR) */
-        #photo-view { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; align-items: center; justify-content: center; }
-        #photo-view img { max-width: 100%; max-height: 100%; }
+        #msg-input { 
+            flex-grow: 1; background: var(--bg); border: 1px solid #444; 
+            padding: 10px 15px; border-radius: 20px; color: #fff; outline: none;
+        }
 
-        /* CALL UI */
-        #call-screen { position: fixed; inset: 0; background: #050505; z-index: 2500; display: none; flex-direction: column; align-items: center; justify-content: space-around; padding: 50px 0; }
-        .call-avatar { width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--accent); }
-        .call-btns { display: flex; gap: 30px; }
-        .hangup { background: #ff3b30; color: #fff; width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 30px; }
+        .btn-icon { 
+            background: none; border: none; color: var(--accent); 
+            font-size: 22px; cursor: pointer; display: flex; align-items: center; 
+        }
+        
+        .btn-send { 
+            background: var(--accent); color: #000; width: 40px; height: 40px; 
+            border-radius: 50%; border: none; font-size: 18px; font-weight: bold;
+        }
+
+        /* Запись голоса */
+        .recording { color: #ff4444 !important; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         .hidden { display: none !important; }
     </style>
@@ -58,55 +104,39 @@
 
     <div id="auth-screen">
         <div class="auth-card">
-            <h2 id="at">Регистрация</h2>
-            <input type="text" id="a-nick" placeholder="Твой Ник">
-            <input type="password" id="a-pass" placeholder="Пароль">
-            <input type="text" id="a-phone" placeholder="Телефон">
-            <button class="btn-circle" style="width:100%; border-radius:12px; margin-top:10px" onclick="auth()">Далее</button>
-            <p onclick="swapAuth()" style="margin-top:20px; font-size:13px; opacity:0.6">Уже есть аккаунт? Войти</p>
+            <h2 id="auth-title">ECLI 1 PRO</h2>
+            <input type="text" id="nick" placeholder="Никнейм">
+            <input type="password" id="pass" placeholder="Пароль">
+            <button class="btn-send" style="width:100%; border-radius:10px" onclick="handleAuth()">ВХОД</button>
+            <p onclick="swapMode()" style="font-size:12px; margin-top:15px; opacity:0.6">Нет аккаунта? Регистрация</p>
         </div>
     </div>
 
-    <div id="sidebar">
-        <div class="header">
-            <img id="my-ava" class="avatar" src="" onclick="viewImg(this.src)">
-            <div style="flex-grow:1"><b id="my-n">Name</b></div>
-            <button onclick="logout()" style="background:none; border:none; color:red">Выход</button>
+    <div id="app">
+        <div id="sidebar">
+            <div class="header">
+                <img id="my-ava" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+                <b id="my-name">...</b>
+                <button onclick="logout()" style="margin-left:auto; color:red; background:none; border:none">Выйти</button>
+            </div>
+            <div style="padding:10px"><button onclick="addFriend()" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--accent); background:none; color:var(--accent)">+ Добавить друга</button></div>
+            <div id="contacts-list" style="overflow-y:auto"></div>
         </div>
-        <div style="padding:15px">
-            <button class="btn-circle" style="width:100%; border-radius:12px; font-size:14px" onclick="addF()">+ Добавить друга</button>
-        </div>
-        <div id="contact-list"></div>
-    </div>
 
-    <div id="chat-main">
-        <div class="header">
-            <button onclick="showSidebar()" style="background:none; border:none; color:var(--accent); font-size:20px">◀</button>
-            <img id="chat-ava" class="avatar" src="" onclick="viewImg(this.src)">
-            <div style="flex-grow:1"><b id="chat-n">Чат</b></div>
-            <button onclick="call('voice')" style="background:none; border:none; font-size:22px">📞</button>
-            <button onclick="call('video')" style="background:none; border:none; font-size:22px">📹</button>
-        </div>
-        <div id="messages"></div>
-        <div class="input-bar">
-            <input type="file" id="f-in" class="hidden" accept="image/*" onchange="sendImg()">
-            <button onclick="document.getElementById('f-in').click()" style="background:none; border:none; font-size:24px">🖼️</button>
-            <input type="text" id="msg-input" placeholder="Сообщение...">
-            <button id="rec-btn" class="btn-circle" onmousedown="startV()" onmouseup="stopV()" ontouchstart="startV()" ontouchend="stopV()">🎤</button>
-            <button class="btn-circle" onclick="sendT()">➤</button>
-        </div>
-    </div>
-
-    <div id="photo-view" onclick="this.style.display='none'">
-        <img id="full-img" src="">
-    </div>
-
-    <div id="call-screen">
-        <h2 id="call-status">Звонок...</h2>
-        <img id="call-img" class="call-avatar" src="">
-        <h1 id="call-name">User</h1>
-        <div class="call-btns">
-            <button class="hangup" onclick="endCall()">📵</button>
+        <div id="chat-window">
+            <div class="header">
+                <button class="btn-icon" onclick="showSidebar()">◀</button>
+                <img id="chat-ava" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+                <b id="chat-name">Выберите чат</b>
+            </div>
+            <div id="messages"></div>
+            <div class="input-area hidden" id="input-bar">
+                <input type="file" id="file-in" class="hidden" accept="image/*" onchange="sendPhoto()">
+                <button class="btn-icon" onclick="document.getElementById('file-in').click()">🖼️</button>
+                <input type="text" id="msg-input" placeholder="Сообщение...">
+                <button id="voice-btn" class="btn-icon" onclick="toggleVoice()">🎤</button>
+                <button class="btn-send" onclick="sendText()">➤</button>
+            </div>
         </div>
     </div>
 
@@ -119,99 +149,119 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let me = null, target = null, isLogin = false;
+        let me = null, target = null, isLogin = true;
+        let mediaRecorder, audioChunks = [], isRecording = false;
 
-        // AUTH
-        function swapAuth() {
+        function swapMode() {
             isLogin = !isLogin;
-            document.getElementById('at').innerText = isLogin ? "Вход" : "Регистрация";
-            document.getElementById('a-phone').style.display = isLogin ? "none" : "block";
+            document.getElementById('auth-title').innerText = isLogin ? "Вход" : "Регистрация";
         }
 
-        async function auth() {
-            const nick = document.getElementById('a-nick').value.toLowerCase().trim();
-            const pass = document.getElementById('a-pass').value.trim();
-            if(!nick || !pass) return;
-
-            const ref = db.ref('users/' + nick);
+        async function handleAuth() {
+            const n = document.getElementById('nick').value.toLowerCase().trim();
+            const p = document.getElementById('pass').value.trim();
+            if(!n || !p) return;
+            const ref = db.ref('users/' + n);
             const snap = await ref.once('value');
-
             if(isLogin) {
-                if(!snap.exists() || snap.val().pass !== pass) return alert("Ошибка!");
+                if(!snap.exists() || snap.val().pass !== p) return alert("Ошибка!");
                 me = snap.val();
             } else {
-                if(snap.exists()) return alert("Занят!");
-                me = { nick, pass, phone: document.getElementById('a-phone').value, ava: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
+                if(snap.exists()) return alert("Ник занят!");
+                me = { nick: n, pass: p, ava: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
                 await ref.set(me);
             }
-            localStorage.setItem('ecli_user', JSON.stringify(me));
+            localStorage.setItem('ecli_v2', JSON.stringify(me));
             location.reload();
         }
 
-        // STARTUP
-        const saved = localStorage.getItem('ecli_user');
+        const saved = localStorage.getItem('ecli_v2');
         if(saved) {
             me = JSON.parse(saved);
             document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('my-n').innerText = me.nick.toUpperCase();
-            document.getElementById('my-ava').src = me.ava;
-            init();
-        }
-
-        function init() {
-            db.ref(`friends/${me.nick}`).on('value', snap => {
-                const list = document.getElementById('contact-list');
-                list.innerHTML = '';
-                snap.forEach(child => {
-                    const f = child.val();
-                    list.innerHTML += `
-                        <div class="contact-card" onclick="openChat('${f.nick}', '${f.ava}')">
-                            <img class="avatar" src="${f.ava}" onclick="event.stopPropagation(); viewImg('${f.ava}')">
-                            <b>${f.nick.toUpperCase()}</b>
-                        </div>`;
-                });
-            });
-
-            // Слушаем входящие звонки
-            db.ref(`calls/${me.nick}`).on('value', snap => {
-                if(snap.exists()) {
-                    const c = snap.val();
-                    if(confirm(`Вам звонит ${c.from}! Принять?`)) {
-                        document.getElementById('call-screen').style.display = 'flex';
-                        document.getElementById('call-name').innerText = c.from;
-                    } else { db.ref(`calls/${me.nick}`).remove(); }
-                }
-            });
-        }
-
-        function openChat(nick, ava) {
-            target = {nick, ava};
-            document.getElementById('chat-n').innerText = nick.toUpperCase();
-            document.getElementById('chat-ava').src = ava;
-            document.getElementById('sidebar').classList.add('hidden');
-            loadMsgs();
+            document.getElementById('my-name').innerText = me.nick.toUpperCase();
+            loadContacts();
         }
 
         function showSidebar() { document.getElementById('sidebar').classList.remove('hidden'); }
-
-        function viewImg(src) {
-            document.getElementById('full-img').src = src;
-            document.getElementById('photo-view').style.display = 'flex';
-        }
-
         function logout() { localStorage.clear(); location.reload(); }
 
-        // MESSAGES
-        async function sendT() {
+        function addFriend() {
+            const f = prompt("Ник друга:").toLowerCase();
+            if(f) db.ref(`friends/${me.nick}/${f}`).set({ nick: f });
+        }
+
+        function loadContacts() {
+            db.ref(`friends/${me.nick}`).on('value', snap => {
+                const list = document.getElementById('contacts-list');
+                list.innerHTML = '';
+                snap.forEach(c => {
+                    const name = c.key;
+                    list.innerHTML += `<div style="padding:15px; border-bottom:1px solid #222; display:flex; align-items:center; gap:10px" onclick="openChat('${name}')">
+                        <div class="avatar" style="background:#444; display:flex; align-items:center; justify-content:center">${name[0].toUpperCase()}</div>
+                        <b>${name.toUpperCase()}</b>
+                    </div>`;
+                });
+            });
+        }
+
+        function openChat(name) {
+            target = name;
+            document.getElementById('chat-name').innerText = name.toUpperCase();
+            document.getElementById('sidebar').classList.add('hidden');
+            document.getElementById('input-bar').classList.remove('hidden');
+            loadMsgs();
+        }
+
+        function sendText() {
             const input = document.getElementById('msg-input');
             if(!input.value.trim() || !target) return;
-            const key = me.nick < target.nick ? me.nick+'_'+target.nick : target.nick+'_'+me.nick;
+            const key = me.nick < target ? me.nick+'_'+target : target+'_'+me.nick;
             db.ref(`chats/${key}`).push({ from: me.nick, type: 'text', val: input.value });
             input.value = '';
         }
 
+        function sendPhoto() {
+            const file = document.getElementById('file-in').files[0];
+            const reader = new FileReader();
+            reader.onload = () => {
+                const key = me.nick < target ? me.nick+'_'+target : target+'_'+me.nick;
+                db.ref(`chats/${key}`).push({ from: me.nick, type: 'img', val: reader.result });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // УЛУЧШЕННЫЕ ГОЛОСОВЫЕ
+        async function toggleVoice() {
+            const btn = document.getElementById('voice-btn');
+            if (!isRecording) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            const key = me.nick < target ? me.nick+'_'+target : target+'_'+me.nick;
+                            db.ref(`chats/${key}`).push({ from: me.nick, type: 'voice', val: reader.result });
+                        };
+                        reader.readAsDataURL(blob);
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    btn.classList.add('recording');
+                } catch (err) { alert("Нет доступа к микрофону"); }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                btn.classList.remove('recording');
+            }
+        }
+
         function loadMsgs() {
-            const key = me.nick < target.nick ? me.nick+'_'+target.nick : target.nick+'_'+me.nick;
+            const key = me.nick < target ? me.nick+'_'+target : target+'_'+me.nick;
             db.ref(`chats/${key}`).on('value', snap => {
                 const win = document.getElementById('messages');
                 win.innerHTML = '';
@@ -220,45 +270,13 @@
                     const div = document.createElement('div');
                     div.className = `msg ${m.from === me.nick ? 'my' : 'other'}`;
                     if(m.type === 'text') div.innerText = m.val;
-                    if(m.type === 'img') div.innerHTML = `<img src="${m.val}" onclick="viewImg('${m.val}')">`;
-                    if(m.type === 'voice') div.innerHTML = `<audio src="${m.val}" controls style="width:100%"></audio>`;
+                    if(m.type === 'img') div.innerHTML = `<img src="${m.val}" style="width:100%">`;
+                    if(m.type === 'voice') div.innerHTML = `<audio src="${m.val}" controls style="width:180px"></audio>`;
                     win.appendChild(div);
                 });
                 win.scrollTop = win.scrollHeight;
             });
         }
-
-        // MEDIA
-        function sendImg() {
-            const file = document.getElementById('f-in').files[0];
-            const reader = new FileReader();
-            reader.onload = () => {
-                const key = me.nick < target.nick ? me.nick+'_'+target.nick : target.nick+'_'+me.nick;
-                db.ref(`chats/${key}`).push({ from: me.nick, type: 'img', val: reader.result });
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // CALLS
-        function call(type) {
-            if(!target) return;
-            document.getElementById('call-screen').style.display = 'flex';
-            document.getElementById('call-name').innerText = target.nick;
-            document.getElementById('call-img').src = target.ava;
-            db.ref(`calls/${target.nick}`).set({ from: me.nick, type: type });
-        }
-
-        function endCall() {
-            document.getElementById('call-screen').style.display = 'none';
-            if(target) db.ref(`calls/${target.nick}`).remove();
-            db.ref(`calls/${me.nick}`).remove();
-        }
-
-        function addF() {
-            const n = prompt("Ник друга:").toLowerCase();
-            if(n) db.ref(`friends/${me.nick}/${n}`).set({ nick: n, ava: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' });
-        }
-
     </script>
 </body>
 </html>
