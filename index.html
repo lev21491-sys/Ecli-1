@@ -3,287 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECLI 1 - ULTIMATE PRO</title>
+    <title>ECLI 1 - ULTIMATE (NO STORAGE)</title>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
-        :root { --bg: #0a0a0a; --surface: #161616; --accent: #ffd700; --text: #ffffff; }
+        :root { --bg: #050505; --surface: #111; --accent: #ffd700; --text: #fff; }
         * { box-sizing: border-box; transition: 0.2s; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; }
-
-        /* AUTH */
-        #auth-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 5000; }
-        .auth-card { background: var(--surface); padding: 30px; border-radius: 20px; border: 1px solid var(--accent); text-align: center; width: 320px; box-shadow: 0 0 20px rgba(255,215,0,0.2); }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; }
-        .auth-btn { width: 100%; padding: 12px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; border-radius: 10px; color: #000; }
-
-        /* SIDEBAR */
-        #side-menu { position: fixed; left: -310px; top: 0; width: 300px; height: 100%; background: var(--surface); border-right: 1px solid #222; z-index: 2000; display: flex; flex-direction: column; }
-        #side-menu.active { left: 0; }
-        .menu-header { padding: 20px; border-bottom: 1px solid #333; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
         
-        /* INVITES */
-        #invite-notify { background: rgba(255,215,0,0.1); border: 1px dashed var(--accent); margin: 10px; padding: 15px; border-radius: 10px; display: none; font-size: 13px; }
-        .inv-btns { display: flex; gap: 5px; margin-top: 10px; }
-        .inv-btns button { flex: 1; padding: 6px; border-radius: 5px; border: none; cursor: pointer; color: #fff; font-weight: bold; }
+        /* Боковое меню */
+        #side-menu { width: 280px; background: var(--surface); border-right: 1px solid #222; display: flex; flex-direction: column; }
+        .menu-header { padding: 20px; border-bottom: 1px solid #222; text-align: center; font-family: 'Orbitron'; color: var(--accent); }
+        .contact-item { padding: 15px; cursor: pointer; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; gap: 10px; }
+        .contact-item:hover { background: #1a1a1a; }
+        .avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--accent); color: #000; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        .contacts-area { flex-grow: 1; overflow-y: auto; }
-        .contact-item { padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #1a1a1a; }
-        .contact-item:hover { background: #222; }
-        .contact-item.active { border-left: 4px solid var(--accent); background: #1f1f1f; }
-        .avatar { width: 42px; height: 42px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--accent); }
-
-        /* CHAT */
-        .main-content { flex-grow: 1; display: flex; flex-direction: column; }
-        header { background: var(--surface); padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #222; }
-        #chat-window { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #000; }
+        /* Основная часть */
+        .chat-area { flex-grow: 1; display: flex; flex-direction: column; }
+        header { padding: 15px; background: var(--surface); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        #chat-window { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #000; }
         
-        .msg { max-width: 80%; padding: 12px; border-radius: 15px; font-size: 14px; position: relative; }
+        /* Сообщения */
+        .msg { max-width: 75%; padding: 10px 15px; border-radius: 15px; font-size: 14px; position: relative; }
         .my { align-self: flex-end; background: var(--accent); color: #000; border-bottom-right-radius: 2px; }
         .other { align-self: flex-start; background: #222; color: #fff; border-bottom-left-radius: 2px; }
-        .msg-info { font-size: 10px; opacity: 0.6; display: block; margin-bottom: 4px; }
 
-        /* INPUT */
+        /* Поле ввода */
         #input-area { padding: 15px; background: var(--surface); display: flex; gap: 10px; align-items: center; }
         #msg-input { flex-grow: 1; background: #000; border: 1px solid #333; padding: 12px; color: #fff; border-radius: 25px; outline: none; }
-        .icon-btn { background: none; border: none; color: var(--accent); font-size: 22px; cursor: pointer; }
-
-        #rec-ui { display: none; color: #ff4444; font-weight: bold; font-size: 12px; }
-        #call-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        video { width: 90%; max-width: 320px; border-radius: 15px; border: 2px solid var(--accent); margin: 10px; }
+        .btn { background: none; border: none; color: var(--accent); font-size: 22px; cursor: pointer; }
         
-        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; z-index: 1500; }
+        #call-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <h2 style="font-family:'Orbitron'; color:var(--accent)">ECLI 1</h2>
-            <input type="text" id="log-n" class="auth-input" placeholder="Никнейм">
-            <input type="password" id="log-p" class="auth-input" placeholder="Пароль">
-            <button class="auth-btn" onclick="auth()">ВОЙТИ</button>
-        </div>
-    </div>
-
-    <div id="overlay" onclick="toggleMenu()"></div>
-    
     <div id="side-menu">
-        <div class="menu-header">
-            <div id="me-name" style="font-weight:bold; font-size:18px;">---</div>
-            <div id="me-id" style="font-size:11px; color:var(--accent);">ID: ----</div>
-            <button onclick="logout()" style="margin-top:10px; font-size:10px; background:none; border:1px solid #555; color:#aaa; cursor:pointer;">ВЫЙТИ</button>
-        </div>
-
-        <div id="invite-notify">
-            <div id="inv-text">... хочет в друзья</div>
-            <div class="inv-btns">
-                <button style="background:#2ecc71" onclick="answerInv(true)">Да</button>
-                <button style="background:#e74c3c" onclick="answerInv(false)">Нет</button>
-            </div>
-        </div>
-
-        <div class="contacts-area">
-            <div class="contact-item" onclick="sendInvite()">➕ Добавить по ID</div>
-            <div class="contact-item" onclick="createGroup()" style="color:var(--accent)">👥 Создать группу</div>
-            <div id="contacts-list"></div>
-        </div>
+        <div class="menu-header">ECLI 1 PRO</div>
+        <div class="contact-item" onclick="addFriend()">➕ Добавить ID</div>
+        <div id="contacts-list"></div>
     </div>
 
-    <div class="main-content">
+    <div class="chat-area">
         <header>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <button class="icon-btn" onclick="toggleMenu()">☰</button>
-                <div id="chat-title" style="font-family:'Orbitron'; font-size:14px">ECLI PRO</div>
-            </div>
-            <div id="call-box" class="hidden">
-                <button class="icon-btn" onclick="call('video')">📹</button>
-                <button class="icon-btn" onclick="call('audio')">📞</button>
+            <div id="target-name">Выберите чат</div>
+            <div id="call-btns" class="hidden">
+                <button class="btn" onclick="makeCall('audio')">📞</button>
+                <button class="btn" onclick="makeCall('video')">📹</button>
             </div>
         </header>
         <div id="chat-window"></div>
         <div id="input-area" class="hidden">
-            <button class="icon-btn" onclick="document.getElementById('f-up').click()">🖼️</button>
-            <input type="file" id="f-up" class="hidden" accept="image/*" onchange="sendPhoto(this)">
-            <input type="text" id="msg-input" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendMsg()">
-            <div id="rec-ui">⏺ ЗАПИСЬ...</div>
-            <button class="icon-btn" onmousedown="startRec()" onmouseup="stopRec()">🎤</button>
+            <input type="file" id="file-up" class="hidden" accept="image/*" onchange="sendPhoto(this)">
+            <button class="btn" onclick="document.getElementById('file-up').click()">🖼️</button>
+            <input type="text" id="msg-input" placeholder="Введите сообщение..." onkeypress="if(event.key==='Enter') sendText()">
+            <button class="btn" onmousedown="startVoice()" onmouseup="stopVoice()">🎤</button>
+            <button class="btn" onclick="sendText()">➤</button>
         </div>
     </div>
 
     <div id="call-overlay">
-        <h2 id="call-status" style="color:var(--accent)">Звонок...</h2>
-        <video id="v-remote" autoplay playsinline></video>
-        <video id="v-local" autoplay muted playsinline style="width:100px; border-width:1px;"></video>
-        <button class="auth-btn" style="background:#ff4444; margin-top:20px; width:150px;" onclick="hangup()">СБРОС</button>
+        <h2 style="color:var(--accent)">ИДЕТ ВЫЗОВ...</h2>
+        <div id="call-info"></div>
+        <button onclick="endCall()" style="margin-top:20px; padding:15px 30px; background:red; color:white; border:none; border-radius:10px; cursor:pointer;">СБРОСИТЬ</button>
     </div>
 
     <script>
+        // ТВОЙ КОНФИГ
         const firebaseConfig = {
             apiKey: "AIzaSyBKbnXKGct2AegbAT2-XcNXGFfrOtXiFuY",
-            authDomain: "ecli-1-51c71.firebaseapp.com",
             databaseURL: "https://ecli-1-51c71-default-rtdb.firebaseio.com",
             projectId: "ecli-1-51c71",
-            storageBucket: "ecli-1-51c71.appspot.com",
-            messagingSenderId: "262595056485",
-            appId: "1:262595056485:web:f7afac4c57f109dc7bc78c"
         };
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database(), storage = firebase.storage();
+        const db = firebase.database();
 
-        let me = JSON.parse(sessionStorage.getItem('ecli_me')) || null;
-        let target = null, recorder, chunks = [], currentInv = null;
+        // Простая авторизация (чтобы не усложнять)
+        let userName = localStorage.getItem('ecli_user') || prompt("Твоё имя:");
+        if(userName) localStorage.setItem('ecli_user', userName);
+        let myID = userName.toLowerCase().replace(/\s/g, '');
+        let targetID = null;
 
-        // AUTH
-        async function auth() {
-            const n = document.getElementById('log-n').value.trim(), p = document.getElementById('log-p').value.trim();
-            if(!n || !p) return;
-            const snap = await db.ref('users/' + n.toLowerCase()).once('value');
-            let data = snap.val();
-            if(data) {
-                if(data.p !== p) return alert("Пароль неверный!");
-            } else {
-                data = { n, p, id: Math.random().toString(36).substring(2,7).toUpperCase() };
-                await db.ref('users/' + n.toLowerCase()).set(data);
-                await db.ref('ids/' + data.id).set(n.toLowerCase());
+        function addFriend() {
+            let id = prompt("Введите ID друга (его имя маленькими буквами):");
+            if(id) {
+                db.ref(`friends/${myID}/${id}`).set({id: id, n: id.toUpperCase()});
+                renderFriends();
             }
-            sessionStorage.setItem('ecli_me', JSON.stringify(data));
-            location.reload();
-        }
-        function logout() { sessionStorage.clear(); location.reload(); }
-
-        // FRIENDS & INVITES
-        async function sendInvite() {
-            const id = prompt("Введите ID друга:").toUpperCase();
-            if(!id || id === me.id) return;
-            db.ref(`invites/${id}`).set({ fromId: me.id, fromN: me.n });
-            alert("Запрос отправлен!");
         }
 
-        function listenInvites() {
-            db.ref(`invites/${me.id}`).on('value', snap => {
-                const inv = snap.val();
-                if(inv) {
-                    currentInv = inv;
-                    document.getElementById('inv-text').innerText = `${inv.fromN} хочет в друзья`;
-                    document.getElementById('invite-notify').style.display = 'block';
-                } else {
-                    document.getElementById('invite-notify').style.display = 'none';
-                }
-            });
-        }
-
-        async function answerInv(yes) {
-            if(yes) {
-                await db.ref(`friends/${me.id}/${currentInv.fromId}`).set({ id: currentInv.fromId, n: currentInv.fromN });
-                await db.ref(`friends/${currentInv.fromId}/${me.id}`).set({ id: me.id, n: me.n });
-            }
-            db.ref(`invites/${me.id}`).remove();
-        }
-
-        function loadFriends() {
-            db.ref(`friends/${me.id}`).on('value', snap => {
-                const list = document.getElementById('contacts-list'); list.innerHTML = '';
+        function renderFriends() {
+            db.ref(`friends/${myID}`).on('value', snap => {
+                const list = document.getElementById('contacts-list');
+                list.innerHTML = '';
                 snap.forEach(child => {
                     const f = child.val();
-                    list.innerHTML += `<div class="contact-item ${target?.id === f.id ? 'active' : ''}" onclick="openChat('${f.id}','${f.n}')">
-                        <div class="avatar">${f.n[0]}</div><div><b>${f.n}</b><br><small>${f.id}</small></div>
+                    list.innerHTML += `<div class="contact-item" onclick="selectChat('${f.id}')">
+                        <div class="avatar">${f.n[0]}</div>
+                        <div>${f.n}</div>
                     </div>`;
                 });
             });
         }
 
-        // CHAT ENGINE
-        function openChat(id, name) {
-            target = {id, name};
-            document.getElementById('chat-title').innerText = name;
+        function selectChat(id) {
+            targetID = id;
+            document.getElementById('target-name').innerText = "Чат с: " + id.toUpperCase();
             document.getElementById('input-area').classList.remove('hidden');
-            document.getElementById('call-box').classList.remove('hidden');
-            loadMsgs();
-            toggleMenu();
+            document.getElementById('call-btns').classList.remove('hidden');
+            loadMessages();
         }
 
-        async function sendMsg(type = 'text', val = null) {
-            const v = val || document.getElementById('msg-input').value;
-            if(!v && type === 'text') return;
-            const msg = { type, val: v, from: me.id, fromN: me.n, t: Date.now() };
-            const key = me.id < target.id ? me.id + target.id : target.id + me.id;
-            await db.ref(`chats/${key}`).push(msg);
-            document.getElementById('msg-input').value = '';
+        function sendText() {
+            const input = document.getElementById('msg-input');
+            if(!input.value.trim()) return;
+            const chatKey = myID < targetID ? myID + "_" + targetID : targetID + "_" + myID;
+            db.ref(`chats/${chatKey}`).push({ from: myID, type: 'text', content: input.value });
+            input.value = '';
         }
 
-        function loadMsgs() {
-            const key = me.id < target.id ? me.id + target.id : target.id + me.id;
-            db.ref(`chats/${key}`).off();
-            db.ref(`chats/${key}`).limitToLast(50).on('value', snap => {
-                const win = document.getElementById('chat-window'); win.innerHTML = '';
+        // ФУНКЦИЯ ФОТО БЕЗ STORAGE
+        function sendPhoto(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const chatKey = myID < targetID ? myID + "_" + targetID : targetID + "_" + myID;
+                db.ref(`chats/${chatKey}`).push({ from: myID, type: 'img', content: e.target.result });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ГОЛОСОВЫЕ БЕЗ STORAGE
+        let mediaRec, chunks = [];
+        async function startVoice() {
+            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRec = new MediaRecorder(s);
+            chunks = [];
+            mediaRec.ondataavailable = e => chunks.push(e.data);
+            mediaRec.start();
+        }
+        function stopVoice() {
+            if(!mediaRec) return;
+            mediaRec.stop();
+            mediaRec.onstop = async () => {
+                const blob = new Blob(chunks, { type: 'audio/ogg' });
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const chatKey = myID < targetID ? myID + "_" + targetID : targetID + "_" + myID;
+                    db.ref(`chats/${chatKey}`).push({ from: myID, type: 'audio', content: e.target.result });
+                };
+                reader.readAsDataURL(blob);
+            };
+        }
+
+        function loadMessages() {
+            const chatKey = myID < targetID ? myID + "_" + targetID : targetID + "_" + myID;
+            db.ref(`chats/${chatKey}`).on('value', snap => {
+                const win = document.getElementById('chat-window');
+                win.innerHTML = '';
                 snap.forEach(c => {
                     const m = c.val();
-                    const div = document.createElement('div');
-                    div.className = `msg ${m.from === me.id ? 'my' : 'other'}`;
-                    let html = `<span class="msg-info">${m.fromN}</span>`;
-                    if(m.type === 'text') html += m.val;
-                    if(m.type === 'img') html += `<img src="${m.val}" style="width:100%; border-radius:10px;">`;
-                    if(m.type === 'voice') html += `<audio controls src="${m.val}" style="width:200px; height:30px;"></audio>`;
-                    div.innerHTML = html;
-                    win.appendChild(div);
+                    const d = document.createElement('div');
+                    d.className = `msg ${m.from === myID ? 'my' : 'other'}`;
+                    if(m.type === 'text') d.innerText = m.content;
+                    if(m.type === 'img') d.innerHTML = `<img src="${m.content}" style="width:100%; border-radius:10px;">`;
+                    if(m.type === 'audio') d.innerHTML = `<audio src="${m.content}" controls style="width:200px; height:35px;"></audio>`;
+                    win.appendChild(d);
                 });
                 win.scrollTop = win.scrollHeight;
             });
         }
 
-        // MEDIA
-        async function sendPhoto(el) {
-            const file = el.files[0]; if(!file) return;
-            const ref = storage.ref(`media/${Date.now()}`);
-            await ref.put(file);
-            sendMsg('img', await ref.getDownloadURL());
-        }
-
-        async function startRec() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            recorder = new MediaRecorder(stream); chunks = [];
-            document.getElementById('rec-ui').style.display = 'block';
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.start();
-        }
-        async function stopRec() {
-            if(!recorder) return; recorder.stop();
-            document.getElementById('rec-ui').style.display = 'none';
-            recorder.onstop = async () => {
-                const blob = new Blob(chunks, { type: 'audio/ogg' });
-                const ref = storage.ref(`voice/${Date.now()}.ogg`);
-                await ref.put(blob);
-                sendMsg('voice', await ref.getDownloadURL());
-            };
-        }
-
-        // CALLS
-        function call(type) {
+        // ЗВОНКИ
+        function makeCall(type) {
             document.getElementById('call-overlay').style.display = 'flex';
-            db.ref(`calls/${target.id}`).set({ fromN: me.n, fromId: me.id, type });
+            db.ref(`calls/${targetID}`).set({from: myID, type: type});
         }
-        function hangup() {
+        function endCall() {
             document.getElementById('call-overlay').style.display = 'none';
-            db.ref(`calls/${target?.id || me.id}`).remove();
-            location.reload(); 
+            db.ref(`calls/${targetID}`).remove();
         }
 
-        if(me) {
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('me-name').innerText = me.n.toUpperCase();
-            document.getElementById('me-id').innerText = "ID: " + me.id;
-            loadFriends(); listenInvites();
-            db.ref(`calls/${me.id}`).on('value', snap => {
+        // Слушатель звонков
+        db.ref(`calls/${myID}`).on('value', snap => {
+            if(snap.exists()) {
                 const c = snap.val();
-                if(c && confirm(`Звонок от ${c.fromN}. Принять?`)) {
+                if(confirm(`Вам звонит ${c.from.toUpperCase()} (${c.type}). Принять?`)) {
                     document.getElementById('call-overlay').style.display = 'flex';
+                } else {
+                    db.ref(`calls/${myID}`).remove();
                 }
-            });
-        }
-        function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); document.getElementById('overlay').style.display = document.getElementById('side-menu').classList.contains('active')?'block':'none'; }
+            }
+        });
+
+        renderFriends();
     </script>
 </body>
 </html>
