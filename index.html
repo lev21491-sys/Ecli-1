@@ -9,52 +9,51 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
-        :root { --bg: #050505; --surface: #121212; --accent: #ffd700; --text: #fff; --neon: 0 0 15px #ffd700; }
-        * { box-sizing: border-box; transition: 0.3s; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        :root { --bg: #0a0a0a; --surface: #161616; --accent: #ffd700; --text: #ffffff; }
+        * { box-sizing: border-box; transition: 0.2s; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; }
 
         /* AUTH */
-        #auth-overlay { position: fixed; inset: 0; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); display: flex; justify-content: center; align-items: center; z-index: 5000; }
-        .auth-card { background: var(--surface); padding: 40px; border-radius: 25px; border: 1px solid var(--accent); text-align: center; width: 340px; box-shadow: var(--neon); }
-        .auth-input { width: 100%; padding: 14px; margin-bottom: 15px; background: #000; border: 1px solid #333; color: #fff; border-radius: 12px; outline: none; }
-        .auth-btn { width: 100%; padding: 14px; background: var(--accent); border: none; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; border-radius: 12px; color: #000; }
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 5000; }
+        .auth-card { background: var(--surface); padding: 30px; border-radius: 20px; border: 1px solid var(--accent); text-align: center; width: 320px; box-shadow: 0 0 20px rgba(255,215,0,0.2); }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 10px; }
+        .auth-btn { width: 100%; padding: 12px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; border-radius: 10px; color: #000; }
 
-        /* MAIN LAYOUT */
-        #side-menu { position: fixed; left: -310px; top: 0; width: 300px; height: 100%; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(10px); border-right: 1px solid #222; z-index: 2000; display: flex; flex-direction: column; }
+        /* SIDEBAR */
+        #side-menu { position: fixed; left: -310px; top: 0; width: 300px; height: 100%; background: var(--surface); border-right: 1px solid #222; z-index: 2000; display: flex; flex-direction: column; }
         #side-menu.active { left: 0; }
-        .menu-header { padding: 30px 20px; border-bottom: 1px solid #333; text-align: center; }
-        .logout-btn { margin: 20px; padding: 10px; background: #ff4444; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; }
+        .menu-header { padding: 20px; border-bottom: 1px solid #333; }
+        
+        /* INVITES */
+        #invite-notify { background: rgba(255,215,0,0.1); border: 1px dashed var(--accent); margin: 10px; padding: 15px; border-radius: 10px; display: none; font-size: 13px; }
+        .inv-btns { display: flex; gap: 5px; margin-top: 10px; }
+        .inv-btns button { flex: 1; padding: 6px; border-radius: 5px; border: none; cursor: pointer; color: #fff; font-weight: bold; }
 
-        /* CONTACTS */
         .contacts-area { flex-grow: 1; overflow-y: auto; }
         .contact-item { padding: 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #1a1a1a; }
-        .contact-item:hover { background: rgba(255, 215, 0, 0.1); }
-        .contact-item.active { border-left: 5px solid var(--accent); background: rgba(255, 215, 0, 0.05); }
+        .contact-item:hover { background: #222; }
+        .contact-item.active { border-left: 4px solid var(--accent); background: #1f1f1f; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background: #333; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--accent); }
 
-        /* CHAT WINDOW */
-        .main-content { flex-grow: 1; display: flex; flex-direction: column; background: #000; }
-        header { background: var(--surface); padding: 15px 25px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #222; }
-        #chat-window { flex-grow: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png'); }
+        /* CHAT */
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; }
+        header { background: var(--surface); padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #222; }
+        #chat-window { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #000; }
         
-        /* MESSAGES */
-        .message { max-width: 75%; padding: 12px 18px; border-radius: 18px; position: relative; font-size: 14px; line-height: 1.4; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .my-message { align-self: flex-end; background: var(--accent); color: #000; border-bottom-right-radius: 2px; }
-        .other-message { align-self: flex-start; background: #1e1e1e; color: #fff; border-bottom-left-radius: 2px; border: 1px solid #333; }
-        .sender-tag { font-size: 10px; font-weight: bold; margin-bottom: 4px; display: block; opacity: 0.7; }
+        .msg { max-width: 80%; padding: 12px; border-radius: 15px; font-size: 14px; position: relative; }
+        .my { align-self: flex-end; background: var(--accent); color: #000; border-bottom-right-radius: 2px; }
+        .other { align-self: flex-start; background: #222; color: #fff; border-bottom-left-radius: 2px; }
+        .msg-info { font-size: 10px; opacity: 0.6; display: block; margin-bottom: 4px; }
 
-        /* INPUT AREA */
-        #input-area { padding: 20px; background: var(--surface); display: flex; gap: 12px; align-items: center; border-top: 1px solid #222; }
-        #msg-input { flex-grow: 1; background: #000; border: 1px solid #333; padding: 14px; color: #fff; border-radius: 30px; outline: none; }
+        /* INPUT */
+        #input-area { padding: 15px; background: var(--surface); display: flex; gap: 10px; align-items: center; }
+        #msg-input { flex-grow: 1; background: #000; border: 1px solid #333; padding: 12px; color: #fff; border-radius: 25px; outline: none; }
         .icon-btn { background: none; border: none; color: var(--accent); font-size: 22px; cursor: pointer; }
+
+        #rec-ui { display: none; color: #ff4444; font-weight: bold; font-size: 12px; }
+        #call-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        video { width: 90%; max-width: 320px; border-radius: 15px; border: 2px solid var(--accent); margin: 10px; }
         
-        #rec-status { display: none; color: #ff4444; font-weight: bold; animation: blink 1s infinite; margin-right: 10px; }
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* CALL OVERLAY */
-        #call-ui { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        video { width: 80%; max-width: 400px; border-radius: 15px; border: 2px solid var(--accent); background: #222; margin: 10px; }
-
-        .hidden { display: none !important; }
         #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; z-index: 1500; }
     </style>
 </head>
@@ -62,63 +61,66 @@
 
     <div id="auth-overlay">
         <div class="auth-card">
-            <h1 style="font-family:'Orbitron'; color:var(--accent); margin-bottom:20px;">ECLI PRO</h1>
-            <input type="text" id="auth-n" class="auth-input" placeholder="Логин">
-            <input type="password" id="auth-p" class="auth-input" placeholder="Пароль">
-            <button class="auth-btn" onclick="handleAuth()">ВОЙТИ В СЕТЬ</button>
-            <p id="auth-err" style="color:red; font-size:12px; margin-top:10px;"></p>
+            <h2 style="font-family:'Orbitron'; color:var(--accent)">ECLI 1</h2>
+            <input type="text" id="log-n" class="auth-input" placeholder="Никнейм">
+            <input type="password" id="log-p" class="auth-input" placeholder="Пароль">
+            <button class="auth-btn" onclick="auth()">ВОЙТИ</button>
         </div>
     </div>
 
     <div id="overlay" onclick="toggleMenu()"></div>
+    
     <div id="side-menu">
         <div class="menu-header">
-            <div id="u-name" style="font-size:20px; font-weight:bold; color:var(--accent);">User</div>
-            <div id="u-id" style="font-size:12px; opacity:0.6;">ID: ----</div>
-            <button class="logout-btn" onclick="logout()">ВЫЙТИ ИЗ АККАУНТА</button>
+            <div id="me-name" style="font-weight:bold; font-size:18px;">---</div>
+            <div id="me-id" style="font-size:11px; color:var(--accent);">ID: ----</div>
+            <button onclick="logout()" style="margin-top:10px; font-size:10px; background:none; border:1px solid #555; color:#aaa; cursor:pointer;">ВЫЙТИ</button>
         </div>
+
+        <div id="invite-notify">
+            <div id="inv-text">... хочет в друзья</div>
+            <div class="inv-btns">
+                <button style="background:#2ecc71" onclick="answerInv(true)">Да</button>
+                <button style="background:#e74c3c" onclick="answerInv(false)">Нет</button>
+            </div>
+        </div>
+
         <div class="contacts-area">
-            <div class="contact-item" onclick="addContact()">➕ Добавить по ID</div>
-            <div class="contact-item" onclick="createGroup()" style="color:var(--accent)">👥 Создать Группу</div>
-            <div id="list-js"></div>
+            <div class="contact-item" onclick="sendInvite()">➕ Добавить по ID</div>
+            <div class="contact-item" onclick="createGroup()" style="color:var(--accent)">👥 Создать группу</div>
+            <div id="contacts-list"></div>
         </div>
     </div>
 
     <div class="main-content">
         <header>
-            <div style="display:flex; align-items:center; gap:15px;">
+            <div style="display:flex; align-items:center; gap:10px;">
                 <button class="icon-btn" onclick="toggleMenu()">☰</button>
-                <div id="chat-name" style="font-family:'Orbitron'; font-weight:bold;">Выберите чат</div>
+                <div id="chat-title" style="font-family:'Orbitron'; font-size:14px">ECLI PRO</div>
             </div>
-            <div id="call-btns" class="hidden">
-                <button class="icon-btn" onclick="startCall('audio')">📞</button>
-                <button class="icon-btn" onclick="startCall('video')">📹</button>
+            <div id="call-box" class="hidden">
+                <button class="icon-btn" onclick="call('video')">📹</button>
+                <button class="icon-btn" onclick="call('audio')">📞</button>
             </div>
         </header>
-
         <div id="chat-window"></div>
-
         <div id="input-area" class="hidden">
-            <button class="icon-btn" onclick="document.getElementById('f-img').click()">🖼️</button>
-            <input type="file" id="f-img" class="hidden" accept="image/*" onchange="uploadPhoto(this)">
-            
-            <span id="rec-status">⏺ ЗАПИСЬ...</span>
-            <input type="text" id="msg-input" placeholder="Введите сообщение..." onkeypress="if(event.key==='Enter') sendText()">
-            
-            <button id="v-btn" class="icon-btn" onmousedown="recStart()" onmouseup="recStop()">🎤</button>
-            <button id="s-btn" class="icon-btn" onclick="sendText()">➤</button>
+            <button class="icon-btn" onclick="document.getElementById('f-up').click()">🖼️</button>
+            <input type="file" id="f-up" class="hidden" accept="image/*" onchange="sendPhoto(this)">
+            <input type="text" id="msg-input" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <div id="rec-ui">⏺ ЗАПИСЬ...</div>
+            <button class="icon-btn" onmousedown="startRec()" onmouseup="stopRec()">🎤</button>
         </div>
     </div>
 
-    <div id="call-ui">
-        <h2 id="call-status" style="color:var(--accent)">Вызов...</h2>
-        <video id="localVideo" autoplay muted playsinline></video>
-        <video id="remoteVideo" autoplay playsinline></video>
-        <button class="auth-btn" style="background:#ff4444; width:200px; margin-top:20px;" onclick="endCall()">ЗАВЕРШИТЬ</button>
+    <div id="call-overlay">
+        <h2 id="call-status" style="color:var(--accent)">Звонок...</h2>
+        <video id="v-remote" autoplay playsinline></video>
+        <video id="v-local" autoplay muted playsinline style="width:100px; border-width:1px;"></video>
+        <button class="auth-btn" style="background:#ff4444; margin-top:20px; width:150px;" onclick="hangup()">СБРОС</button>
     </div>
 
     <script>
-        // --- КОНФИГ ---
         const firebaseConfig = {
             apiKey: "AIzaSyBKbnXKGct2AegbAT2-XcNXGFfrOtXiFuY",
             authDomain: "ecli-1-51c71.firebaseapp.com",
@@ -131,184 +133,157 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database(), storage = firebase.storage();
 
-        let me = JSON.parse(localStorage.getItem('ecli_session')) || null;
-        let target = null, recorder, audioChunks = [];
+        let me = JSON.parse(sessionStorage.getItem('ecli_me')) || null;
+        let target = null, recorder, chunks = [], currentInv = null;
 
-        // --- АВТОРИЗАЦИЯ ---
-        async function handleAuth() {
-            const n = document.getElementById('auth-n').value.trim().toLowerCase();
-            const p = document.getElementById('auth-p').value.trim();
+        // AUTH
+        async function auth() {
+            const n = document.getElementById('log-n').value.trim(), p = document.getElementById('log-p').value.trim();
             if(!n || !p) return;
-
-            const snap = await db.ref('users/' + n).once('value');
-            const userData = snap.val();
-
-            if(userData) {
-                if(userData.p !== p) return document.getElementById('auth-err').innerText = "Неверный пароль!";
-                me = userData;
+            const snap = await db.ref('users/' + n.toLowerCase()).once('value');
+            let data = snap.val();
+            if(data) {
+                if(data.p !== p) return alert("Пароль неверный!");
             } else {
-                me = { n, p, id: Math.random().toString(36).substring(2,7).toUpperCase() };
-                await db.ref('users/' + n).set(me);
-                await db.ref('ids/' + me.id).set(n);
+                data = { n, p, id: Math.random().toString(36).substring(2,7).toUpperCase() };
+                await db.ref('users/' + n.toLowerCase()).set(data);
+                await db.ref('ids/' + data.id).set(n.toLowerCase());
             }
-            localStorage.setItem('ecli_session', JSON.stringify(me));
+            sessionStorage.setItem('ecli_me', JSON.stringify(data));
             location.reload();
         }
+        function logout() { sessionStorage.clear(); location.reload(); }
 
-        function logout() { localStorage.removeItem('ecli_session'); location.reload(); }
-
-        // --- КОНТАКТЫ И ГРУППЫ ---
-        async function addContact() {
-            const id = prompt("Введите ID:").toUpperCase();
+        // FRIENDS & INVITES
+        async function sendInvite() {
+            const id = prompt("Введите ID друга:").toUpperCase();
             if(!id || id === me.id) return;
-            const snap = await db.ref('ids/' + id).once('value');
-            if(!snap.exists()) return alert("ID не найден");
-            const name = snap.val();
-            db.ref(`friends/${me.id}/${id}`).set({id, n: name});
-            renderList();
+            db.ref(`invites/${id}`).set({ fromId: me.id, fromN: me.n });
+            alert("Запрос отправлен!");
         }
 
-        async function createGroup() {
-            const gName = prompt("Название группы:"); if(!gName) return;
-            const gid = 'G-' + Math.random().toString(36).substring(2,6).toUpperCase();
-            await db.ref(`groups/${gid}`).set({id: gid, n: gName, members: [me.id]});
-            await db.ref(`friends/${me.id}/${gid}`).set({id: gid, n: gName, isGroup: true});
-            renderList();
+        function listenInvites() {
+            db.ref(`invites/${me.id}`).on('value', snap => {
+                const inv = snap.val();
+                if(inv) {
+                    currentInv = inv;
+                    document.getElementById('inv-text').innerText = `${inv.fromN} хочет в друзья`;
+                    document.getElementById('invite-notify').style.display = 'block';
+                } else {
+                    document.getElementById('invite-notify').style.display = 'none';
+                }
+            });
         }
 
-        function renderList() {
+        async function answerInv(yes) {
+            if(yes) {
+                await db.ref(`friends/${me.id}/${currentInv.fromId}`).set({ id: currentInv.fromId, n: currentInv.fromN });
+                await db.ref(`friends/${currentInv.fromId}/${me.id}`).set({ id: me.id, n: me.n });
+            }
+            db.ref(`invites/${me.id}`).remove();
+        }
+
+        function loadFriends() {
             db.ref(`friends/${me.id}`).on('value', snap => {
-                const list = document.getElementById('list-js'); list.innerHTML = '';
+                const list = document.getElementById('contacts-list'); list.innerHTML = '';
                 snap.forEach(child => {
                     const f = child.val();
                     list.innerHTML += `<div class="contact-item ${target?.id === f.id ? 'active' : ''}" onclick="openChat('${f.id}','${f.n}')">
-                        <div class="avatar">${f.n[0].toUpperCase()}</div>
-                        <div><b>${f.n}</b><br><small>${f.id}</small></div>
+                        <div class="avatar">${f.n[0]}</div><div><b>${f.n}</b><br><small>${f.id}</small></div>
                     </div>`;
                 });
             });
         }
 
-        // --- ЧАТ ---
+        // CHAT ENGINE
         function openChat(id, name) {
             target = {id, name};
-            document.getElementById('chat-name').innerText = name;
+            document.getElementById('chat-title').innerText = name;
             document.getElementById('input-area').classList.remove('hidden');
-            document.getElementById('call-btns').classList.toggle('hidden', id.startsWith('G-'));
+            document.getElementById('call-box').classList.remove('hidden');
+            loadMsgs();
             toggleMenu();
-            listenMsgs();
         }
 
-        function sendText() {
-            const input = document.getElementById('msg-input');
-            if(!input.value.trim()) return;
-            pushMsg({ type: 'text', val: input.value });
-            input.value = '';
+        async function sendMsg(type = 'text', val = null) {
+            const v = val || document.getElementById('msg-input').value;
+            if(!v && type === 'text') return;
+            const msg = { type, val: v, from: me.id, fromN: me.n, t: Date.now() };
+            const key = me.id < target.id ? me.id + target.id : target.id + me.id;
+            await db.ref(`chats/${key}`).push(msg);
+            document.getElementById('msg-input').value = '';
         }
 
-        async function uploadPhoto(el) {
-            const file = el.files[0]; if(!file) return;
-            const path = `media/${Date.now()}_${file.name}`;
-            const snap = await storage.ref(path).put(file);
-            const url = await snap.ref.getDownloadURL();
-            pushMsg({ type: 'img', val: url });
-        }
-
-        // --- ГОЛОСОВЫЕ ---
-        async function recStart() {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            recorder = new MediaRecorder(stream);
-            audioChunks = [];
-            document.getElementById('rec-status').style.display = 'inline';
-            recorder.ondataavailable = e => audioChunks.push(e.data);
-            recorder.start();
-        }
-
-        async function recStop() {
-            if(!recorder) return;
-            recorder.stop();
-            document.getElementById('rec-status').style.display = 'none';
-            recorder.onstop = async () => {
-                const blob = new Blob(audioChunks, { type: 'audio/ogg' });
-                const path = `voice/${Date.now()}.ogg`;
-                const snap = await storage.ref(path).put(blob);
-                const url = await snap.ref.getDownloadURL();
-                pushMsg({ type: 'voice', val: url });
-            };
-        }
-
-        // --- СИСТЕМА СООБЩЕНИЙ ---
-        function pushMsg(data) {
-            const msg = { ...data, from: me.id, fromN: me.n, time: Date.now() };
-            const path = target.id.startsWith('G-') ? `groupMsgs/${target.id}` : `direct/${getChatKey()}`;
-            db.ref(path).push(msg);
-        }
-
-        function listenMsgs() {
-            const path = target.id.startsWith('G-') ? `groupMsgs/${target.id}` : `direct/${getChatKey()}`;
-            db.ref(path).off();
-            db.ref(path).limitToLast(30).on('value', snap => {
+        function loadMsgs() {
+            const key = me.id < target.id ? me.id + target.id : target.id + me.id;
+            db.ref(`chats/${key}`).off();
+            db.ref(`chats/${key}`).limitToLast(50).on('value', snap => {
                 const win = document.getElementById('chat-window'); win.innerHTML = '';
                 snap.forEach(c => {
                     const m = c.val();
-                    const isMy = m.from === me.id;
                     const div = document.createElement('div');
-                    div.className = `message ${isMy ? 'my-message' : 'other-message'}`;
-                    
-                    let content = '';
-                    if(m.type === 'text') content = m.val;
-                    if(m.type === 'img') content = `<img src="${m.val}" style="width:100%; border-radius:10px;">`;
-                    if(m.type === 'voice') content = `<audio controls src="${m.val}" style="width:200px; height:30px;"></audio>`;
-                    
-                    div.innerHTML = `<span class="sender-tag">${isMy ? 'Я' : m.fromN}</span>${content}`;
+                    div.className = `msg ${m.from === me.id ? 'my' : 'other'}`;
+                    let html = `<span class="msg-info">${m.fromN}</span>`;
+                    if(m.type === 'text') html += m.val;
+                    if(m.type === 'img') html += `<img src="${m.val}" style="width:100%; border-radius:10px;">`;
+                    if(m.type === 'voice') html += `<audio controls src="${m.val}" style="width:200px; height:30px;"></audio>`;
+                    div.innerHTML = html;
                     win.appendChild(div);
                 });
                 win.scrollTop = win.scrollHeight;
             });
         }
 
-        function getChatKey() { return me.id < target.id ? me.id + target.id : target.id + me.id; }
-
-        // --- ЗВОНКИ (WebRTC упрощенно через БД) ---
-        async function startCall(type) {
-            document.getElementById('call-ui').style.display = 'flex';
-            const stream = await navigator.mediaDevices.getUserMedia({ video: type==='video', audio: true });
-            document.getElementById('localVideo').srcObject = stream;
-            // Здесь должна быть логика сигналинга WebRTC, но для примера просто кидаем уведомление
-            db.ref(`calls/${target.id}`).set({from: me.n, fromId: me.id, type});
+        // MEDIA
+        async function sendPhoto(el) {
+            const file = el.files[0]; if(!file) return;
+            const ref = storage.ref(`media/${Date.now()}`);
+            await ref.put(file);
+            sendMsg('img', await ref.getDownloadURL());
         }
 
-        function endCall() {
-            document.getElementById('call-ui').style.display = 'none';
-            const stream = document.getElementById('localVideo').srcObject;
-            stream?.getTracks().forEach(t => t.stop());
+        async function startRec() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recorder = new MediaRecorder(stream); chunks = [];
+            document.getElementById('rec-ui').style.display = 'block';
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.start();
+        }
+        async function stopRec() {
+            if(!recorder) return; recorder.stop();
+            document.getElementById('rec-ui').style.display = 'none';
+            recorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: 'audio/ogg' });
+                const ref = storage.ref(`voice/${Date.now()}.ogg`);
+                await ref.put(blob);
+                sendMsg('voice', await ref.getDownloadURL());
+            };
+        }
+
+        // CALLS
+        function call(type) {
+            document.getElementById('call-overlay').style.display = 'flex';
+            db.ref(`calls/${target.id}`).set({ fromN: me.n, fromId: me.id, type });
+        }
+        function hangup() {
+            document.getElementById('call-overlay').style.display = 'none';
             db.ref(`calls/${target?.id || me.id}`).remove();
-        }
-
-        // Слушаем входящие звонки
-        if(me) {
-            db.ref(`calls/${me.id}`).on('value', snap => {
-                if(snap.exists()) {
-                    const call = snap.val();
-                    if(confirm(`Входящий ${call.type} звонок от ${call.from}. Принять?`)) {
-                        document.getElementById('call-ui').style.display = 'flex';
-                        startCall(call.type);
-                    } else { endCall(); }
-                }
-            });
-        }
-
-        function toggleMenu() {
-            document.getElementById('side-menu').classList.toggle('active');
-            document.getElementById('overlay').style.display = document.getElementById('side-menu').classList.contains('active') ? 'block' : 'none';
+            location.reload(); 
         }
 
         if(me) {
             document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('u-name').innerText = me.n.toUpperCase();
-            document.getElementById('u-id').innerText = "ТВОЙ ID: " + me.id;
-            renderList();
+            document.getElementById('me-name').innerText = me.n.toUpperCase();
+            document.getElementById('me-id').innerText = "ID: " + me.id;
+            loadFriends(); listenInvites();
+            db.ref(`calls/${me.id}`).on('value', snap => {
+                const c = snap.val();
+                if(c && confirm(`Звонок от ${c.fromN}. Принять?`)) {
+                    document.getElementById('call-overlay').style.display = 'flex';
+                }
+            });
         }
+        function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); document.getElementById('overlay').style.display = document.getElementById('side-menu').classList.contains('active')?'block':'none'; }
     </script>
 </body>
 </html>
