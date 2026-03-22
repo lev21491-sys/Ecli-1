@@ -87,7 +87,7 @@
     </div>
 
     <script>
-        // ТВОИ КЛЮЧИ (НЕ МЕНЯЕМ)
+        // ТВОИ КЛЮЧИ (ВСТАВЛЕНЫ)
         const firebaseConfig = {
             apiKey: "AIzaSyBKbnXKGct2AegbAT2-XcNXGFfrOtXiFuY",
             authDomain: "ecli-1-51c71.firebaseapp.com",
@@ -174,18 +174,15 @@
         function loadHistory() {
             const win = document.getElementById('chat-window');
             win.innerHTML = '';
-            // Подгружаем историю из облака
             db.ref('history/' + me.id + '/' + targetID).limitToLast(50).once('value', s => {
                 s.forEach(child => displayMsg(child.val()));
             });
-            // Слушаем новые сообщения в реальном времени
             db.ref('messages/' + me.id).on('child_added', s => {
                 const m = s.val();
                 if(m.from === targetID) {
                     displayMsg({...m, isMine: false});
-                    // Сохраняем в историю, чтобы не пропало
                     db.ref('history/' + me.id + '/' + targetID).push({...m, isMine: false});
-                    s.ref.remove(); // Удаляем из очереди "входящих"
+                    s.ref.remove();
                 }
             });
         }
