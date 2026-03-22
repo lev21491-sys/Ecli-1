@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ECLI 1 PRO - ULTIMATE</title>
+    <title>ECLI 1 PRO - FULL FIXED</title>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <style>
@@ -12,59 +12,52 @@
             --safe-bottom: env(safe-area-inset-bottom, 15px);
         }
         
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: sans-serif; overflow: hidden; }
 
-        /* ЭКРАН ВХОДА */
+        /* АВТОРИЗАЦИЯ */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .auth-card { background: var(--panel); width: 100%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; border: 1px solid var(--accent); }
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: 1px solid #444; background: #000; color: #fff; font-size: 16px; }
 
-        /* СТРУКТУРА */
+        /* ПАНЕЛИ */
         #app { display: flex; width: 100%; height: 100%; }
         #sidebar { width: 350px; border-right: 1px solid #333; display: flex; flex-direction: column; background: var(--bg); transition: 0.3s; z-index: 1000; }
-        #chat-window { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+        #chat-window { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: var(--bg); }
 
         @media (max-width: 768px) {
             #sidebar { position: absolute; width: 100%; height: 100%; }
             #sidebar.hidden { transform: translateX(-100%); }
         }
 
-        /* ШАПКА */
+        /* ПРОФИЛЬ И ШАПКА */
         .header { padding: 10px 15px; height: 65px; display: flex; align-items: center; gap: 12px; background: var(--panel); border-bottom: 1px solid #333; }
-        .ava-container { position: relative; width: 45px; height: 45px; }
-        .avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); cursor: pointer; }
-        .change-ava-icon { position: absolute; bottom: 0; right: 0; background: var(--accent); color: #000; font-size: 10px; border-radius: 50%; padding: 3px; cursor: pointer; }
+        .ava-box { position: relative; width: 45px; height: 45px; flex-shrink: 0; }
+        .avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent); background: #333; }
+        .cam-icon { position: absolute; bottom: -2px; right: -2px; background: var(--accent); color: #000; font-size: 10px; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--panel); }
 
-        /* СООБЩЕНИЯ */
-        #messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .msg { max-width: 70%; padding: 10px 14px; border-radius: 18px; font-size: 15px; position: relative; }
+        /* ЧАТ И СООБЩЕНИЯ */
+        #messages { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 15px; word-wrap: break-word; }
         .msg.my { align-self: flex-end; background: var(--accent); color: #000; border-bottom-right-radius: 2px; }
         .msg.other { align-self: flex-start; background: var(--panel); color: #fff; border-bottom-left-radius: 2px; }
         
-        /* ИСПРАВЛЕНИЕ РАЗМЕРА ФОТО */
-        .msg img { 
-            max-width: 250px; /* Ограничение ширины на ПК */
-            max-height: 300px; /* Ограничение высоты */
-            border-radius: 10px; 
-            margin-top: 5px; 
-            display: block;
-            object-fit: contain;
-        }
+        /* Исправленные фото */
+        .msg img { max-width: 240px; max-height: 300px; border-radius: 12px; margin-top: 5px; display: block; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
 
         /* ПАНЕЛЬ ВВОДА */
         .input-area { 
             padding: 10px 15px; padding-bottom: calc(var(--safe-bottom) + 10px); 
-            background: var(--panel); display: flex; align-items: center; gap: 10px; 
+            background: var(--panel); display: flex; align-items: center; gap: 8px; border-top: 1px solid #333;
         }
-        #msg-input { flex-grow: 1; background: #0b0e11; border: 1px solid #444; padding: 12px; border-radius: 25px; color: #fff; outline: none; }
+        #msg-input { flex-grow: 1; background: #0b0e11; border: 1px solid #444; padding: 12px 16px; border-radius: 25px; color: #fff; font-size: 15px; }
         
-        .btn { background: none; border: none; color: var(--accent); font-size: 24px; cursor: pointer; padding: 0; }
-        .btn-send { background: var(--accent); color: #000; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .btn-act { background: none; border: none; color: var(--accent); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-send { background: var(--accent); color: #000; width: 42px; height: 42px; border-radius: 50%; font-size: 18px; font-weight: bold; }
 
-        /* ГОЛОСОВОЕ */
-        .voice-rec { color: #ff4444 !important; }
-        audio { height: 35px; width: 200px; margin-top: 5px; }
+        /* ГОЛОСОВЫЕ */
+        .voice-active { color: #ff4444 !important; filter: drop-shadow(0 0 5px #ff4444); }
+        audio { height: 38px; width: 200px; margin-top: 5px; filter: invert(1) hue-rotate(180deg); } /* Инверсия для темной темы */
 
         .hidden { display: none !important; }
     </style>
@@ -74,41 +67,41 @@
     <div id="auth-screen">
         <div class="auth-card">
             <h2 id="auth-title">ECLI 1 PRO</h2>
-            <input type="text" id="nick" placeholder="Никнейм">
+            <input type="text" id="nick" placeholder="Никнейм (маленькими)">
             <input type="password" id="pass" placeholder="Пароль">
-            <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--accent); border:none; border-radius:10px; font-weight:bold">ВХОД / РЕГИСТРАЦИЯ</button>
+            <button onclick="handleAuth()" style="width:100%; padding:14px; background:var(--accent); border:none; border-radius:12px; font-weight:bold; cursor:pointer">ВОЙТИ / СОЗДАТЬ</button>
         </div>
     </div>
 
     <div id="app">
         <div id="sidebar">
             <div class="header">
-                <div class="ava-container">
-                    <img id="my-ava" class="avatar" src="https://via.placeholder.com/150" onclick="changeAva()">
-                    <div class="change-ava-icon" onclick="changeAva()">📷</div>
+                <div class="ava-box" onclick="changeAva()">
+                    <img id="my-ava" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+                    <div class="cam-icon">📷</div>
                 </div>
                 <b id="my-name">...</b>
-                <button onclick="logout()" style="margin-left:auto; color:#ff4444; background:none; border:none; font-weight:bold; cursor:pointer">ВЫХОД</button>
+                <button onclick="logout()" style="margin-left:auto; color:#ff4444; background:none; border:none; font-weight:bold; padding:8px">ВЫХОД</button>
             </div>
             <div style="padding:15px">
-                <button onclick="addFriend()" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--accent); background:none; color:var(--accent); cursor:pointer">+ Добавить друга</button>
+                <button onclick="addFriend()" style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--accent); background:none; color:var(--accent); font-weight:bold">+ ДОБАВИТЬ ДРУГА</button>
             </div>
             <div id="contacts-list" style="overflow-y:auto; flex-grow:1"></div>
         </div>
 
         <div id="chat-window">
             <div class="header">
-                <button class="btn" style="display:none" id="back-btn" onclick="showSidebar()">◀</button>
-                <img id="chat-ava" class="avatar" src="https://via.placeholder.com/150" style="width:35px; height:35px">
+                <button class="btn-act" id="back-btn" style="display:none" onclick="showSidebar()">◀</button>
+                <img id="chat-ava" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:35px; height:35px">
                 <b id="chat-name">Выберите чат</b>
             </div>
             <div id="messages"></div>
             <div class="input-area hidden" id="input-bar">
                 <input type="file" id="file-in" class="hidden" accept="image/*" onchange="sendPhoto()">
-                <button class="btn" onclick="document.getElementById('file-in').click()">🖼️</button>
+                <button class="btn-act" onclick="document.getElementById('file-in').click()">🖼️</button>
                 <input type="text" id="msg-input" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') sendText()">
-                <button id="voice-btn" class="btn" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎤</button>
-                <button class="btn btn-send" onclick="sendText()">➤</button>
+                <button id="voice-btn" class="btn-act" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎤</button>
+                <button class="btn-act btn-send" onclick="sendText()">➤</button>
             </div>
         </div>
     </div>
@@ -122,28 +115,26 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let me = null, target = null;
-        let mediaRecorder, chunks = [];
+        let me = null, target = null, mediaRecorder, chunks = [];
 
-        // ВХОД
         async function handleAuth() {
             const n = document.getElementById('nick').value.toLowerCase().trim();
             const p = document.getElementById('pass').value.trim();
-            if(!n || !p) return alert("Заполни поля");
+            if(!n || !p) return alert("Заполни данные!");
             const ref = db.ref('users/' + n);
             const snap = await ref.once('value');
             if(snap.exists()) {
-                if(snap.val().pass !== p) return alert("Неверный пароль");
+                if(snap.val().pass !== p) return alert("Неверный пароль!");
                 me = snap.val();
             } else {
                 me = { nick: n, pass: p, ava: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' };
                 await ref.set(me);
             }
-            localStorage.setItem('ecli_user', JSON.stringify(me));
+            localStorage.setItem('ecli_final', JSON.stringify(me));
             location.reload();
         }
 
-        const saved = localStorage.getItem('ecli_user');
+        const saved = localStorage.getItem('ecli_final');
         if(saved) {
             me = JSON.parse(saved);
             document.getElementById('auth-screen').classList.add('hidden');
@@ -165,7 +156,7 @@
                     db.ref('users/' + me.nick + '/ava').set(base64);
                     me.ava = base64;
                     document.getElementById('my-ava').src = base64;
-                    localStorage.setItem('ecli_user', JSON.stringify(me));
+                    localStorage.setItem('ecli_final', JSON.stringify(me));
                 };
                 reader.readAsDataURL(e.target.files[0]);
             };
@@ -183,9 +174,9 @@
                 list.innerHTML = '';
                 snap.forEach(c => {
                     const name = c.key;
-                    list.innerHTML += `<div style="padding:15px; border-bottom:1px solid #222; display:flex; align-items:center; gap:10px; cursor:pointer" onclick="openChat('${name}')">
-                        <div style="width:35px; height:35px; border-radius:50%; background:var(--accent); color:#000; display:flex; align-items:center; justify-content:center; font-weight:bold">${name[0].toUpperCase()}</div>
-                        <b>${name.toUpperCase()}</b>
+                    list.innerHTML += `<div style="padding:15px; border-bottom:1px solid #222; display:flex; align-items:center; gap:12px; cursor:pointer" onclick="openChat('${name}')">
+                        <div style="width:40px; height:40px; border-radius:50%; background:var(--accent); color:#000; display:flex; align-items:center; justify-content:center; font-weight:bold; flex-shrink:0">${name[0].toUpperCase()}</div>
+                        <b style="font-size:16px">${name.toUpperCase()}</b>
                     </div>`;
                 });
             });
@@ -201,7 +192,6 @@
 
         function showSidebar() { document.getElementById('sidebar').classList.remove('hidden'); }
 
-        // СООБЩЕНИЯ
         function sendText() {
             const input = document.getElementById('msg-input');
             if(!input.value.trim() || !target) return;
@@ -220,31 +210,32 @@
             reader.readAsDataURL(file);
         }
 
-        // ИСПРАВЛЕННЫЕ ГОЛОСОВЫЕ (ЗАЖАТЬ И ГОВОРИТЬ)
         async function startRec() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                const mime = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4' : 'audio/webm';
+                mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
                 chunks = [];
                 mediaRecorder.ondataavailable = e => chunks.push(e.data);
                 mediaRecorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+                    const blob = new Blob(chunks, { type: mime });
                     const reader = new FileReader();
                     reader.onload = () => {
                         const key = me.nick < target ? me.nick+'_'+target : target+'_'+me.nick;
-                        db.ref(`chats/${key}`).push({ from: me.nick, type: 'voice', val: reader.result });
+                        db.ref(`chats/${key}`).push({ from: me.nick, type: 'voice', val: reader.result, mime: mime });
                     };
                     reader.readAsDataURL(blob);
+                    stream.getTracks().forEach(t => t.stop());
                 };
                 mediaRecorder.start();
-                document.getElementById('voice-btn').classList.add('voice-rec');
-            } catch(e) { alert("Микрофон недоступен"); }
+                document.getElementById('voice-btn').classList.add('voice-active');
+            } catch(e) { alert("Микрофон недоступен!"); }
         }
 
         function stopRec() {
             if(mediaRecorder && mediaRecorder.state !== "inactive") {
                 mediaRecorder.stop();
-                document.getElementById('voice-btn').classList.remove('voice-rec');
+                document.getElementById('voice-btn').classList.remove('voice-active');
             }
         }
 
@@ -259,7 +250,7 @@
                     div.className = `msg ${m.from === me.nick ? 'my' : 'other'}`;
                     if(m.type === 'text') div.innerText = m.val;
                     if(m.type === 'img') div.innerHTML = `<img src="${m.val}" onclick="window.open('${m.val}')">`;
-                    if(m.type === 'voice') div.innerHTML = `<audio src="${m.val}" controls></audio>`;
+                    if(m.type === 'voice') div.innerHTML = `<audio src="${m.val}" controls playsinline preload="metadata"></audio>`;
                     win.appendChild(div);
                 });
                 win.scrollTop = win.scrollHeight;
